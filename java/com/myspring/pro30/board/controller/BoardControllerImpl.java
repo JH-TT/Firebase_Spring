@@ -73,6 +73,31 @@ public class BoardControllerImpl  implements BoardController{
 		return mav;
 	}
 	
+	//댓글 기능
+	@Override
+	@RequestMapping(value="/board/comment.do", method= {RequestMethod.GET, RequestMethod.POST})
+	public ResponseEntity addNewReply(@RequestParam("articleNO") int articleNO,
+									@RequestParam("comment") String comment
+									, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		request.setCharacterEncoding("utf-8");
+		
+		Map<String,Object> ReplyMap = new HashMap<String, Object>();
+		
+		HttpSession session = request.getSession();
+		MemberVO memberVO = (MemberVO) session.getAttribute("member");		
+		String writer = memberVO.getId();
+//		System.out.println(comment);
+//		System.out.println(writer);
+//		System.out.println(articleNO);
+		ReplyMap.put("comment", comment);
+		ReplyMap.put("wrtier", writer);
+		
+		boardService.addNewReply(ReplyMap, String.valueOf(articleNO));
+		
+		return null;
+	}
+	
+	
 	// 검색 기능
 	@Override
 	@RequestMapping(value="/board/searchArticles.do", method = {RequestMethod.GET, RequestMethod.POST})
@@ -84,12 +109,11 @@ public class BoardControllerImpl  implements BoardController{
 		int section = Integer.parseInt(((_section == null) ? "1" : _section));
 		int pageNum = Integer.parseInt(((_section == null) ? "1" : _pageNum));
 		
-		Map<String, String> pagingMap = new HashMap<String, String>();
-		pagingMap.put("section", String.valueOf(section));
-		pagingMap.put("pageNum", String.valueOf(pageNum));
-		pagingMap.put("title", title);
+		Map<String, Integer> pagingMap = new HashMap<String, Integer>();
+		pagingMap.put("section", section);
+		pagingMap.put("pageNum", pageNum);
 		
-		Map articlesMap = boardService.searchArticles(pagingMap);
+		Map articlesMap = boardService.searchArticles(pagingMap, title);
 		articlesMap.put("section", section);
 		articlesMap.put("pageNum", pageNum);
 		articlesMap.put("title", title);
@@ -349,8 +373,7 @@ public class BoardControllerImpl  implements BoardController{
 	@RequestMapping(value = "/board/*Form.do", method = {RequestMethod.GET, RequestMethod.POST})
 	private ModelAndView form(@RequestParam(value="parentNO", required=false) String parentNO,
 								HttpServletRequest request, HttpServletResponse response) throws Exception {
-		String viewName = (String)request.getAttribute("viewName");
-		
+		String viewName = (String)request.getAttribute("viewName");		
 		if(viewName.equals("/board/replyForm")) {
 			HttpSession session = request.getSession();
 			if(parentNO != null) {
@@ -382,6 +405,7 @@ public class BoardControllerImpl  implements BoardController{
 		}
 		return imageFileName;
 	}
+	
 	
 	/*
 	//다중 이미지 업로드하기

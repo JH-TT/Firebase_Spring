@@ -16,8 +16,7 @@ public interface BoardDAO {
 	public int insertNewArticle(Map articleMap) throws Exception;
 	public void insertNewImage(Map articleMap) throws DataAccessException;
 //	public List searchArticlesList(String keyword) throws DataAccessException;
-//	public List searchArticlesList(String keyword) throws Exception;
-	public List searchArticlesList(Map pagingMap) throws Exception;
+	public List searchArticlesList(Map pagingMap, String keyword) throws Exception;
 	
 	public ArticleVO selectArticle(int articleNO) throws Exception;
 	public void updateArticle(Map articleMap) throws DataAccessException;
@@ -25,4 +24,5 @@ public interface BoardDAO {
 	public List selectImageFileList(int articleNO) throws DataAccessException;
 	public int selectNewArticleNO() throws Exception;
 	public int count_search_articles(String title) throws Exception;
+	public void insertNewReply(Map ReplyMap, String articleNO) throws Exception;
 }

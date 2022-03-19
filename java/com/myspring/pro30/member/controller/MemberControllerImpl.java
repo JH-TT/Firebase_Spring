@@ -88,7 +88,8 @@ public class MemberControllerImpl   implements MemberController {
 	
 	@Override
 	@RequestMapping(value = "/member/login.do", method = RequestMethod.POST)
-	public ModelAndView login(@ModelAttribute("member") MemberVO member, RedirectAttributes rAttr,
+	public ModelAndView login(@ModelAttribute("member") MemberVO member,			
+			RedirectAttributes rAttr,			
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
 		memberVO = memberService.login(member);
@@ -104,7 +105,9 @@ public class MemberControllerImpl   implements MemberController {
 					mav.setViewName("redirect:" + action);
 				}else if(action.equals("/board/articleForm.do")) {
 					mav.setViewName("redirect:" + action);
-				}				
+				}else if(action.equals("/board/viewArticle.do")) {
+					mav.setViewName("redirect:" + action);
+				}
 			} else {
 				mav.setViewName("redirect:/main.do");
 			}

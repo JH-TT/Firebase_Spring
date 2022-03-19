@@ -42,10 +42,10 @@ public class BoardServiceImpl  implements BoardService{
 	
 	// 검색 기능
 	@Override
-	public Map searchArticles(Map pagingMap) throws Exception {
+	public Map searchArticles(Map pagingMap, String keyword) throws Exception {
 		Map articlesMap = new HashMap();
-		List<ArticleVO> articlesList = boardDAO.searchArticlesList(pagingMap);
-		int toArticles = boardDAO.count_search_articles((String)pagingMap.get("title"));
+		List<ArticleVO> articlesList = boardDAO.searchArticlesList(pagingMap, keyword);
+		int toArticles = boardDAO.count_search_articles(keyword);
 		articlesMap.put("articlesList", articlesList);
 		articlesMap.put("toArticles", toArticles);
 		
@@ -102,6 +102,11 @@ public class BoardServiceImpl  implements BoardService{
 	@Override
 	public void removeArticle(int articleNO) throws Exception {
 		boardDAO.deleteArticle(articleNO);
+	}
+
+	@Override
+	public void addNewReply(Map ReplyMap, String articleNO) throws Exception {
+		boardDAO.insertNewReply(ReplyMap, articleNO);
 	}
 	
 }

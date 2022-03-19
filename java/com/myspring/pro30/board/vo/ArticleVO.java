@@ -17,6 +17,7 @@ public class ArticleVO {
 	private String imageFileName;
 	private String id;
 	private String  writeDate;
+	private ReplyVO reply;
 	
 	
 	public ArticleVO() {
@@ -103,7 +104,12 @@ public class ArticleVO {
 		this.writeDate = writeDate;
 	}
 
-
+	public void setReply(ReplyVO reply) {
+		this.reply = reply;
+	}
 	
+	public ReplyVO getReply() {
+		return reply;
+	}
 	
 }

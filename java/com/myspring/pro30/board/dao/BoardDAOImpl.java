@@ -32,27 +32,8 @@ public class BoardDAOImpl implements BoardDAO {
 	@Autowired
 	private SqlSession sqlSession;
 	public static final String COLLECTION_NAME = "article";
+	public static final String COLLECTION_NAME2 = "comment";
 
-//	@Override
-//	public List selectAllArticlesList() throws DataAccessException {
-//		List<ArticleVO> articlesList = articlesList = sqlSession.selectList("mapper.board.selectAllArticlesList");
-//		return articlesList;
-//	}
-	
-//	@Override
-//	public List selectAllArticlesList() throws Exception {
-//		Firestore firestore = FirestoreClient.getFirestore();
-//		List<ArticleVO> articlesList = new ArrayList<ArticleVO>();
-//		CollectionReference articles = firestore.collection(COLLECTION_NAME);
-//		Query query = articles.orderBy("articleNO", Direction.DESCENDING).limit(5);
-//		ApiFuture<QuerySnapshot> future = query.get();
-//		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-//		for(QueryDocumentSnapshot document : documents) {
-//			articlesList.add(document.toObject(ArticleVO.class));
-//		}
-//		
-//		return articlesList;
-//	}
 	@Override
 	public List selectAllArticlesList(Map pagingMap) throws Exception {
 		Firestore firestore = FirestoreClient.getFirestore();
@@ -85,65 +66,34 @@ public class BoardDAOImpl implements BoardDAO {
 	}
 	
 	@Override
-	public List searchArticlesList(Map pagingMap) throws Exception {
+	public List searchArticlesList(Map pagingMap, String keyword) throws Exception {
 		Firestore firestore = FirestoreClient.getFirestore();
 		int pageNum = (Integer)pagingMap.get("pageNum");
-		String keyword = (String)pagingMap.get("title");
+		int art_cnt = 0; // 게시글 개수
 		
 		List<ArticleVO> articlesList = new ArrayList<ArticleVO>();		
-		CollectionReference articles = (CollectionReference) firestore.collection(COLLECTION_NAME).whereArrayContains("title", keyword);
-		List<QueryDocumentSnapshot> docs;
+		CollectionReference articleRef = firestore.collection(COLLECTION_NAME);
+		Query search_articles = articleRef.orderBy("articleNO", Direction.DESCENDING);
+		ApiFuture<QuerySnapshot> future = search_articles.get();
+		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
 		
-		if(pageNum > 1) {						
-			Query firstPage = articles.orderBy("articleNO", Direction.DESCENDING).limit(10 * (pageNum-1));
-			
-			ApiFuture<QuerySnapshot> future = firstPage.get();
-			docs = future.get(30, TimeUnit.SECONDS).getDocuments();
-			
-			QueryDocumentSnapshot lastDoc = docs.get(docs.size()-1);
-			Query secondPage = articles.orderBy("articleNO", Direction.DESCENDING).startAfter(lastDoc).limit(10);
-			
-			future = secondPage.get();
-			docs = future.get(30, TimeUnit.SECONDS).getDocuments();
-		}else {
-			Query query = articles.orderBy("articleNO", Direction.DESCENDING).limit(10);
-			ApiFuture<QuerySnapshot> future = query.get();
-			docs = future.get().getDocuments();
-		}
-		
-		for(QueryDocumentSnapshot document : docs) {
-			articlesList.add(document.toObject(ArticleVO.class));
-		}			
+		for(QueryDocumentSnapshot document : documents) {
+			String title = (String)document.get("title");			
+			if(title.contains(keyword)) {				
+				if(pageNum > 1 && art_cnt >= (pageNum-1) * 10 && art_cnt < pageNum * 10) {
+					articlesList.add(document.toObject(ArticleVO.class));
+				} else if(pageNum <= 1) {
+					if(art_cnt < 10) {
+						articlesList.add(document.toObject(ArticleVO.class));
+					}
+				}
+				art_cnt += 1;
+			}
+		}		
 		
 		return articlesList;
 	}
-	
-//	@Override
-//	public List searchArticlesList(String keyword) throws Exception {
-//		Firestore firestore = FirestoreClient.getFirestore();
-//		List<ArticleVO> articlesList = new ArrayList<ArticleVO>();		
-//		CollectionReference articleRef = firestore.collection(COLLECTION_NAME);
-//		Query search_articles = articleRef.orderBy("articleNO", Direction.DESCENDING);
-//		ApiFuture<QuerySnapshot> future = search_articles.get();
-//		List<QueryDocumentSnapshot> documents = future.get().getDocuments();		
-//		for(QueryDocumentSnapshot document : documents) {
-//			String title = (String)document.get("title");
-//			if(title.contains(keyword)) {
-//				articlesList.add(document.toObject(ArticleVO.class));
-//			}
-//		}
-//		
-//		return articlesList;
-//	}
-	
-	
-//	@Override
-//	public int insertNewArticle(Map articleMap) throws DataAccessException {
-//		int articleNO = selectNewArticleNO();
-//		articleMap.put("articleNO", articleNO);
-//		sqlSession.insert("mapper.board.insertNewArticle",articleMap);
-//		return articleNO;
-//	}
+
 	@Override
 	public int insertNewArticle(Map articleMap) throws Exception {
 		Firestore firestore = FirestoreClient.getFirestore();
@@ -162,6 +112,31 @@ public class BoardDAOImpl implements BoardDAO {
 	}
     
 	@Override
+	public void insertNewReply(Map ReplyMap, String articleNO) throws Exception {
+		Firestore firestore = FirestoreClient.getFirestore();
+		Date date = new Date(System.currentTimeMillis());
+				
+		int ReplyNO = selectNewCommentNO(articleNO);
+		try {
+			ReplyMap.put("writeDate", date.toString());
+			ApiFuture<WriteResult> future = firestore.collection(COLLECTION_NAME).document(articleNO).
+											collection(COLLECTION_NAME2).document(String.valueOf(ReplyNO)).set(ReplyMap);
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public int selectNewCommentNO(String articleNO) throws Exception {
+		Firestore firestore = FirestoreClient.getFirestore();
+		ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME).document(articleNO).
+											collection(COLLECTION_NAME2).get();
+		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+		
+		return documents.size() + 1;
+	}
+	
+	@Override
 	public void insertNewImage(Map articleMap) throws DataAccessException {
 		List<ImageVO> imageFileList = (ArrayList)articleMap.get("imageFileList");
 		int articleNO = (Integer)articleMap.get("articleNO");
@@ -173,7 +148,7 @@ public class BoardDAOImpl implements BoardDAO {
 			}
 			sqlSession.insert("mapper.board.insertNewImage",imageFileList);
 		}
-	}
+	}	
 	
 	@Override
 	public ArticleVO selectArticle(int articleNO) throws Exception {
@@ -208,11 +183,7 @@ public class BoardDAOImpl implements BoardDAO {
 		List<ImageVO> imageFileList = null;
 		imageFileList = sqlSession.selectList("mapper.board.selectImageFileList",articleNO);
 		return imageFileList;
-	}
-	
-//	private int selectNewArticleNO() throws DataAccessException {
-//		return sqlSession.selectOne("mapper.board.selectNewArticleNO");
-//	}
+	}	
 	
 	public int selectNewArticleNO() throws Exception {
 		Firestore firestore = FirestoreClient.getFirestore();		
@@ -227,12 +198,23 @@ public class BoardDAOImpl implements BoardDAO {
 	}
 
 	@Override
-	public int count_search_articles(String title) throws Exception {
+	public int count_search_articles(String keyword) throws Exception {
 		Firestore firestore = FirestoreClient.getFirestore();
-		ApiFuture<QuerySnapshot> future = (ApiFuture<QuerySnapshot>) firestore.collection(COLLECTION_NAME).whereArrayContains("title", title).get();
+		List<ArticleVO> articlesList = new ArrayList<ArticleVO>();		
+		CollectionReference articleRef = firestore.collection(COLLECTION_NAME);
+		Query search_articles = articleRef.orderBy("articleNO", Direction.DESCENDING);
+		ApiFuture<QuerySnapshot> future = search_articles.get();
 		List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+		int size = 0;
+		for(QueryDocumentSnapshot document : documents) {
+			String title = (String)document.get("title");
+			if(title.contains(keyword)) {
+				articlesList.add(document.toObject(ArticleVO.class));
+				size += 1;
+			}
+		}
 		
-		return documents.size();
+		return size;
 	}
 
 }
