@@ -16,6 +16,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserRecord;
+import com.google.firebase.cloud.FirestoreClient;
 import com.myspring.pro30.member.service.MemberService;
 import com.myspring.pro30.member.vo.MemberVO;
 
@@ -87,12 +94,22 @@ public class MemberControllerImpl   implements MemberController {
 	*/
 	
 	@Override
-	@RequestMapping(value = "/member/login.do", method = RequestMethod.POST)
-	public ModelAndView login(@ModelAttribute("member") MemberVO member,			
+	@RequestMapping(value = "/member/login.do", method = {RequestMethod.POST, RequestMethod.GET})
+	public ModelAndView login(@ModelAttribute("member") MemberVO member,		
+			@RequestParam(value = "uid", required=false) String uid, 
 			RedirectAttributes rAttr,			
 			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView();
-		memberVO = memberService.login(member);
+		Firestore firestore = FirestoreClient.getFirestore();
+		if(uid != null) {
+			DocumentReference docRef = firestore.collection("users").document(uid);
+			ApiFuture<DocumentSnapshot> future = docRef.get();
+			DocumentSnapshot document = future.get();
+			memberVO = document.toObject(MemberVO.class);
+		} else {
+			memberVO = memberService.login(member);
+		}
+		
 		if (memberVO != null) {
 			HttpSession session = request.getSession();
 			session.setAttribute("member", memberVO);

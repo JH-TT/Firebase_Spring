@@ -12,9 +12,11 @@ public class ArticleVO {
 	private int  level;
 	private int articleNO;
 	private int parentNO;
+	private int totalComments;
 	private String title;
 	private String content;
 	private String imageFileName;
+	private String originalFileName;
 	private String id;
 	private String  writeDate;
 	private ReplyVO reply;
@@ -23,6 +25,25 @@ public class ArticleVO {
 	public ArticleVO() {
 		System.out.println("ArticleVO 생성");
 	}
+	
+	// 댓글관련 start
+	public int gettotalComments() {
+		return totalComments;
+	}
+	
+	public void settotalComments(int totalComments) {
+		this.totalComments = totalComments;
+	}
+	
+	public void addComment() {
+		totalComments++;
+	}
+	
+	public void deleteComment() {
+		totalComments--;
+	}
+	// 댓글관련 end
+	
 
 	public int getArticleNO() {
 		return articleNO;
@@ -47,8 +68,7 @@ public class ArticleVO {
 	public void setLevel(int level) {
 		this.level = level;
 	}
-
-
+	
 	public String getTitle() {
 		return title;
 	}
@@ -77,6 +97,27 @@ public class ArticleVO {
 	}
 
 	public void setImageFileName(String imageFileName) {
+		try {
+			if(imageFileName!= null && imageFileName.length()!=0) {
+				this.imageFileName = URLEncoder.encode(imageFileName,"UTF-8");
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String getOriginalFileName() {
+		try {
+			if (imageFileName != null && imageFileName.length() != 0) {
+				imageFileName = URLDecoder.decode(imageFileName, "UTF-8");
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return imageFileName;
+	}
+	
+	public void setOriginalFileName(String originalFileName) {
 		try {
 			if(imageFileName!= null && imageFileName.length()!=0) {
 				this.imageFileName = URLEncoder.encode(imageFileName,"UTF-8");

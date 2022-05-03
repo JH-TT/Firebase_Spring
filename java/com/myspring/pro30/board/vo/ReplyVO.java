@@ -4,22 +4,30 @@ import org.springframework.stereotype.Component;
 
 @Component("ReplyVO")
 public class ReplyVO {
-	private String content;
-	private String id;
-	private String  writeDate;
+	private String comment;
+	private String writer;
+	private String writeDate;
+	private int commentNO;
+	private int totalComments2;
 	
 	
-	public String getContent() {
-		return content;
+	public String getComment() {
+		return comment;
 	}
-	public void setContent(String content) {
-		this.content = content;
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
-	public String getId() {
-		return id;
+	public String getWriter() {
+		return writer;
 	}
-	public void setId(String id) {
-		this.id = id;
+	public void setWriter(String writer) {
+		this.writer = writer;
+	}
+	public int getcommentNO() {
+		return commentNO;
+	}
+	public void setcommentNO(int commentNO) {
+		this.commentNO = commentNO;
 	}
 	public String getWriteDate() {
 		return writeDate;
@@ -27,6 +35,17 @@ public class ReplyVO {
 	public void setWriteDate(String writeDate) {
 		this.writeDate = writeDate;
 	}
-	
+	public int gettotalComments2() {
+		return totalComments2;
+	}
+	public void settotalComments2(int totalComments2) {
+		this.totalComments2 = totalComments2;
+	}
+	public void addComment2() {
+		totalComments2++;
+	}
+	public void deleteComment2() {
+		totalComments2--;
+	}
 	
 }
