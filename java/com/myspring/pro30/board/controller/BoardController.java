@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.myspring.pro30.board.vo.MessageVO;
 import com.myspring.pro30.board.vo.ReplyVO;
 
 
@@ -19,16 +20,21 @@ public interface BoardController {
 	
 	public List<ReplyVO> commentlist(@RequestParam("commentNO") int commentNO,
 							@RequestParam("articleNO") int articleNO,
-							HttpServletRequest request, HttpServletResponse response) throws Exception;	
+							HttpServletRequest request, HttpServletResponse response) throws Exception;
+	public List Messagelist(@RequestParam("id") String id,
+							HttpServletRequest request, HttpServletResponse response) throws Exception;
 	
 	public ResponseEntity addNewArticle(MultipartHttpServletRequest multipartRequest,HttpServletResponse response) throws Exception;
 	
 	public ResponseEntity addNewReply(@RequestParam("articleNO") int articleNO,
 									@RequestParam("comment") String comment,
+									@RequestParam(value = "message_id", required=false) String message_id,
+									@RequestParam(value = "send_id", required=false) String send_id,
 									HttpServletRequest request,HttpServletResponse response) throws Exception;	
 	public ResponseEntity addNewReply2(@RequestParam("articleNO") int articleNO,
 			@RequestParam("comment") String comment,
 			@RequestParam("commentNO") int commentNO,
+			@RequestParam(value = "commentid", required=false) String commentid,
 			HttpServletRequest request,HttpServletResponse response) throws Exception;	
 	
 	public ModelAndView viewArticle(@RequestParam("articleNO") int articleNO,

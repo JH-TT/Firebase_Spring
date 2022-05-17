@@ -12,6 +12,7 @@ import com.myspring.pro30.board.vo.ReplyVO;
 public interface BoardDAO {
 	public List selectAllArticlesList(Map pagingMap) throws Exception;
 	public List selectAllcommentsList(int commentNO, int articleNO) throws Exception;
+	public List selectAllmessagesList(String id) throws Exception;
 	public int insertNewArticle(ArticleVO article) throws Exception;
 	public void insertNewImage(Map articleMap) throws DataAccessException;
 	public List searchArticlesList(Map pagingMap, String keyword) throws Exception;
@@ -26,6 +27,6 @@ public interface BoardDAO {
 	public int totalArticles() throws Exception;
 	public int totalComment(String articleNO) throws Exception;
 	public int count_search_articles(String title) throws Exception;
-	public void insertNewReply(Map ReplyMap, String articleNO) throws Exception;
-	public void insertNewReply2(Map ReplyMap, String articleNO, String commentNO) throws Exception;
+	public void insertNewReply(Map ReplyMap, Map MessageMap, String articleNO) throws Exception;
+	public void insertNewReply2(Map ReplyMap, Map MessageMap, String articleNO, String commentNO) throws Exception;
 }

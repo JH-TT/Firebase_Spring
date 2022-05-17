@@ -28,6 +28,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.myspring.pro30.board.service.BoardService;
 import com.myspring.pro30.board.vo.ArticleVO;
+import com.myspring.pro30.board.vo.MessageVO;
 import com.myspring.pro30.board.vo.ReplyVO;
 import com.myspring.pro30.member.vo.MemberVO;
 
@@ -41,16 +42,9 @@ public class BoardControllerImpl  implements BoardController{
 	private ArticleVO articleVO;
 	@Autowired
 	private ReplyVO replyVO;
+	@Autowired
+	private MessageVO messageVO;
 	
-//	@Override
-//	@RequestMapping(value= "/board/listArticles.do", method = {RequestMethod.GET, RequestMethod.POST})
-//	public ModelAndView listArticles(HttpServletRequest request, HttpServletResponse response) throws Exception {
-//		String viewName = (String)request.getAttribute("viewName");
-//		List articlesList = boardService.listArticles();
-//		ModelAndView mav = new ModelAndView(viewName);
-//		mav.addObject("articlesList", articlesList);
-//		return mav;		
-//	}
 	@Override
 	@RequestMapping(value= "/board/listArticles.do", method = {RequestMethod.GET, RequestMethod.POST})
 	public ModelAndView listArticles(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -75,42 +69,65 @@ public class BoardControllerImpl  implements BoardController{
 	}
 	
 	@Override
+	@RequestMapping(value="/board/messagelist", method = {RequestMethod.GET, RequestMethod.POST})
+	@ResponseBody
+	public List Messagelist(@RequestParam("id") String id,
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+		List<MessageVO> messagesList = boardService.listmessages(id);		
+		return messagesList;
+	}
+	
+	@Override
 	@RequestMapping(value="/board/commentlist", method = {RequestMethod.GET, RequestMethod.POST})
 	@ResponseBody
 	public List<ReplyVO> commentlist(@RequestParam("commentNO") int commentNO,
 							@RequestParam("articleNO") int articleNO,
 							HttpServletRequest request, HttpServletResponse response) throws Exception {
-		List<ReplyVO> commentsList = boardService.listcomments(commentNO, articleNO);
+		List<ReplyVO> commentsList = boardService.listcomments(commentNO, articleNO);		
+		
 		return commentsList;
 	}
+	
+	
+	
 	
 	//댓글 기능
 	@Override
 	@RequestMapping(value="/board/comment.do", method= {RequestMethod.GET, RequestMethod.POST})
 	public ResponseEntity addNewReply(@RequestParam("articleNO") int articleNO,
-									@RequestParam("comment") String comment
-									, HttpServletRequest request, HttpServletResponse response) throws Exception {
+									@RequestParam("comment") String comment,
+									@RequestParam(value = "message_id", required=false) String message_id,
+									@RequestParam(value = "send_id", required=false) String send_id,
+									 HttpServletRequest request, HttpServletResponse response) throws Exception {
 		request.setCharacterEncoding("utf-8");
 		response.setContentType("text/html; charset=UTF-8");
 		
 		Map<String,Object> ReplyMap = new HashMap<String, Object>();
+		Map<String,Object> MessageMap = new HashMap<String, Object>();		
 		
 		HttpSession session = request.getSession();
 		MemberVO memberVO = (MemberVO) session.getAttribute("member");		
 		String writer = memberVO.getId();
-//		System.out.println(comment);
-//		System.out.println(writer);
-//		System.out.println(articleNO);
+
 		ReplyMap.put("comment", comment);
 		ReplyMap.put("writer", writer);
 		ReplyMap.put("totalComments2", 0);
+		ReplyMap.put("isdeleted", 0);
+		
+		String content;
+		content = send_id + "님이 댓글을 남겼습니다.";	
+//			System.out.println(content);
+		MessageMap.put("send_id", send_id);
+		MessageMap.put("receive_id", message_id);
+		MessageMap.put("content", content);
+		MessageMap.put("articleNO", articleNO);
 				
 		String message;
 		ResponseEntity resEnt=null;
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.add("Content-Type", "text/html; charset=utf-8");
 	    try {
-			boardService.addNewReply(ReplyMap, String.valueOf(articleNO));
+			boardService.addNewReply(ReplyMap, MessageMap, String.valueOf(articleNO));
 			message = "<script>";
 			message += " alert('댓글을 추가하였습니다.');";
 			message += " location.href='" + request.getContextPath() + "/board/viewArticle.do?articleNO="
@@ -128,16 +145,19 @@ public class BoardControllerImpl  implements BoardController{
 		return resEnt;
 	}
 	
+	// 대댓글
 	@Override
 	@RequestMapping(value="/board/comment2.do", method= {RequestMethod.GET, RequestMethod.POST})
 	public ResponseEntity addNewReply2(@RequestParam("articleNO") int articleNO,
 										@RequestParam("comment") String comment,
 										@RequestParam("commentNO") int commentNO,
+										@RequestParam(value = "commentid", required=false) String commentid,
 										HttpServletRequest request, HttpServletResponse response) throws Exception {
 		request.setCharacterEncoding("utf-8");
 		response.setContentType("text/html; charset=UTF-8");
 		
 		Map<String,Object> ReplyMap = new HashMap<String, Object>();
+		Map<String,Object> MessageMap = new HashMap<String, Object>();
 		
 		HttpSession session = request.getSession();
 		MemberVO memberVO = (MemberVO) session.getAttribute("member");
@@ -148,13 +168,21 @@ public class BoardControllerImpl  implements BoardController{
 		ReplyMap.put("comment", comment);
 		ReplyMap.put("writer", writer);
 		ReplyMap.put("totalComments2", 0);
+		ReplyMap.put("isdeleted", 0);
+		
+		String content;
+		content = writer + "님이 대댓글을 남겼습니다.";	
+		MessageMap.put("send_id", writer);
+		MessageMap.put("receive_id", commentid);
+		MessageMap.put("content", content);
+		MessageMap.put("articleNO", articleNO);
 		
 		String message;
 		ResponseEntity resEnt=null;
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.add("Content-Type", "text/html; charset=utf-8");
 		try {
-			boardService.addNewReply2(ReplyMap, String.valueOf(articleNO), String.valueOf(commentNO));
+			boardService.addNewReply2(ReplyMap, MessageMap, String.valueOf(articleNO), String.valueOf(commentNO));
 			message = "<script>";
 			message += " alert('댓글을 추가하였습니다.');";
 			message += " location.href='" + request.getContextPath() + "/board/viewArticle.do?articleNO="
@@ -280,7 +308,7 @@ public class BoardControllerImpl  implements BoardController{
                                     HttpServletRequest request, HttpServletResponse response) throws Exception{
 		String viewName = (String)request.getAttribute("viewName");
 		articleVO=boardService.viewArticle(articleNO);
-		List<ReplyVO> replyVO = boardService.viewComments(articleNO);		
+		List<ReplyVO> replyVO = boardService.viewComments(articleNO);	
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(viewName);
 		mav.addObject("article", articleVO);
@@ -382,10 +410,10 @@ public class BoardControllerImpl  implements BoardController{
 	  HttpHeaders responseHeaders = new HttpHeaders();
 	  responseHeaders.add("Content-Type", "text/html; charset=utf-8");
 	  try {
-		  boardService.removeComment(articleNO, commentNO);		  
+		  boardService.removeComment(articleNO, commentNO);
 		  message = "<script>";
 		  message += " alert('해당 댓글이 삭제되었습니다');";
-		  message += " location.href='"+request.getContextPath()+"/board/viewArticle.do?articleNO="+ articleNO + "';";		  
+		  message += " location.href='"+request.getContextPath()+"/board/viewArticle.do?articleNO="+ articleNO + "#CM';";		  
 		  message +=" </script>";
 		  resEnt = new ResponseEntity(message, responseHeaders, HttpStatus.CREATED);
 		  

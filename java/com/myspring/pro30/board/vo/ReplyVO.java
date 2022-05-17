@@ -9,6 +9,7 @@ public class ReplyVO {
 	private String writeDate;
 	private int commentNO;
 	private int totalComments2;
+	private int isdeleted;
 	
 	
 	public String getComment() {
@@ -47,5 +48,10 @@ public class ReplyVO {
 	public void deleteComment2() {
 		totalComments2--;
 	}
-	
+	public int getIsdeleted() {
+		return isdeleted;
+	}
+	public void setIsdeleted(int isdeleted) {
+		this.isdeleted = isdeleted;
+	}
 }

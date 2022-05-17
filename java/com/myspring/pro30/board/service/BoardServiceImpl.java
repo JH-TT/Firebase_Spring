@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.myspring.pro30.board.dao.BoardDAO;
 import com.myspring.pro30.board.vo.ArticleVO;
+import com.myspring.pro30.board.vo.MessageVO;
 import com.myspring.pro30.board.vo.ReplyVO;
 
 
@@ -30,9 +31,13 @@ public class BoardServiceImpl  implements BoardService{
 	}
 	
 	public List listcomments(int commentNO, int articleNO) throws Exception{
-		Map commentsMap = new HashMap();
 		List<ReplyVO> commentsList =  boardDAO.selectAllcommentsList(commentNO, articleNO);
 		return commentsList;
+	}
+	//메시지 가져오기
+	public List listmessages(String id) throws Exception{
+		List<MessageVO> messagesList =  boardDAO.selectAllmessagesList(id);
+		return messagesList;
 	}
 	
 	// 검색 기능
@@ -89,13 +94,13 @@ public class BoardServiceImpl  implements BoardService{
 	}
 
 	@Override
-	public void addNewReply(Map ReplyMap, String articleNO) throws Exception {
-		boardDAO.insertNewReply(ReplyMap, articleNO);
+	public void addNewReply(Map ReplyMap, Map MessageMap, String articleNO) throws Exception {
+		boardDAO.insertNewReply(ReplyMap, MessageMap, articleNO);
 	}
 	
 	@Override
-	public void addNewReply2(Map ReplyMap, String articleNO, String commentNO) throws Exception {
-		boardDAO.insertNewReply2(ReplyMap, articleNO, commentNO);
+	public void addNewReply2(Map ReplyMap, Map MessageMap, String articleNO, String commentNO) throws Exception {
+		boardDAO.insertNewReply2(ReplyMap, MessageMap, articleNO, commentNO);
 	}
 	
 }

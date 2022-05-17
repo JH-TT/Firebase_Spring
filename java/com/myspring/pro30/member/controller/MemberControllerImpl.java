@@ -1,7 +1,9 @@
 package com.myspring.pro30.member.controller;
 
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +22,7 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserRecord;
 import com.google.firebase.cloud.FirestoreClient;
@@ -63,11 +66,7 @@ public class MemberControllerImpl   implements MemberController {
 			                  HttpServletRequest request, HttpServletResponse response) throws Exception {
 		request.setCharacterEncoding("UTF-8");
 		response.setContentType("html/text;charset=utf-8");
-		System.out.println("이름 : " + member.getName());
-//		int result = 0;
-//		result = memberService.addMember(member);
 		memberService.addMember(member);
-//		ModelAndView mav = new ModelAndView("redirect:/member/listMembers.do");
 		ModelAndView mav = new ModelAndView("redirect:/main.do");
 		
 		return mav;
@@ -82,16 +81,6 @@ public class MemberControllerImpl   implements MemberController {
 		ModelAndView mav = new ModelAndView("redirect:/member/listMembers.do");
 		return mav;
 	}
-	/*
-	@RequestMapping(value = { "/member/loginForm.do", "/member/memberForm.do" }, method =  RequestMethod.GET)
-	@RequestMapping(value = "/member/*Form.do", method =  RequestMethod.GET)
-	public ModelAndView form(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		String viewName = getViewName(request);
-		ModelAndView mav = new ModelAndView();
-		mav.setViewName(viewName);
-		return mav;
-	}
-	*/
 	
 	@Override
 	@RequestMapping(value = "/member/login.do", method = {RequestMethod.POST, RequestMethod.GET})
@@ -102,10 +91,26 @@ public class MemberControllerImpl   implements MemberController {
 		ModelAndView mav = new ModelAndView();
 		Firestore firestore = FirestoreClient.getFirestore();
 		if(uid != null) {
-			DocumentReference docRef = firestore.collection("users").document(uid);
+			DocumentReference docRef = firestore.collection("datas").document(uid).collection("userinfo").document("userInfo");
 			ApiFuture<DocumentSnapshot> future = docRef.get();
 			DocumentSnapshot document = future.get();
-			memberVO = document.toObject(MemberVO.class);
+			
+			Map<String, Object> USER = new HashMap<String, Object>();
+			USER = document.getData();
+			String id = (String)USER.get("userId");
+			String name = (String)USER.get("name");
+			String pwd = (String)USER.get("password");
+			
+			DocumentReference docRef2 = firestore.collection("community").document("community").collection("user").document(id);
+			ApiFuture<DocumentSnapshot> future2 = docRef2.get();
+			DocumentSnapshot document2 = future2.get();
+			memberVO = document2.toObject(MemberVO.class);
+			
+			// 모바일은 로그인했지만 웹은 처음인지 확인.
+			if(memberVO == null) {
+				memberVO = new MemberVO(id, pwd, name);
+				ApiFuture<WriteResult> apiFuture = firestore.collection("community").document("community").collection("user").document(id).set(memberVO);
+			}
 		} else {
 			memberVO = memberService.login(member);
 		}
@@ -114,7 +119,6 @@ public class MemberControllerImpl   implements MemberController {
 			HttpSession session = request.getSession();
 			session.setAttribute("member", memberVO);
 			session.setAttribute("isLogOn", true);
-			// mav.setViewName("redirect:/member/listMembers.do");
 			String action = (String) session.getAttribute("action");
 			session.removeAttribute("action");
 			if (action != null) {
@@ -122,7 +126,7 @@ public class MemberControllerImpl   implements MemberController {
 					mav.setViewName("redirect:" + action);
 				}else if(action.equals("/board/articleForm.do")) {
 					mav.setViewName("redirect:" + action);
-				}else if(action.equals("/board/viewArticle.do")) {
+				}else {
 					mav.setViewName("redirect:" + action);
 				}
 			} else {
