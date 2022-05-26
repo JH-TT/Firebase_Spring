@@ -1,0 +1,50 @@
+@charset "EUC-KR";
+body{	
+	height: 2000px;
+}
+header, hgroup{
+	display: block;
+}
+hgroup{
+	padding-top: 80px;
+}
+
+.Wrapper{
+	display: block;
+	position: relative;
+	margin: 0 auto;
+	padding: 30px 0 5px;
+}
+
+.Wrapper .Title{
+	position: absolute;
+	font-size: 1.5em;
+	left: 0;
+	top: 3px;
+	font-family: sans-serif;
+	text-decoration: none;
+}
+#footer {
+	clear: both;
+	padding: 5px;
+	background-color: #3586ff;
+}
+.little_title{
+	text-align: center;
+}
+
+.login_false{
+	display: flex;	
+}
+.btn-group{
+	position: absolute;
+	right: 0;
+	top: 5px;
+}
+
+.go-top{
+	position: fixed;
+	bottom: 5px;
+	right: 5px;
+	
+}
